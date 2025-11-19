@@ -3,16 +3,40 @@ using UnityEngine.EventSystems;
 
 public class PlayerController:MonoBehaviour
 {
-	public float moveSpeed = 5.0f;
-	CharacterController mController;
-	Vector3 mMoveDirection;
+	public float MoveSpeed = 5.0f;
+	public float AttackCoolDown = 0.5f;
 
-	private void Start()
+	public enum AnimState
 	{
-		mController = GetComponent<CharacterController>();
+		Idle,
+		Move,
+		Attack,
+		Damage,
 	}
 
-	private void Update()
+	public void AttackEnd()
+	{
+		mIsAttacking = false;
+	}
+
+	void Start()
+	{
+		mController = GetComponent<CharacterController>();
+		mAnimator = GetComponent<AnimatorWrapper>();
+	}
+
+	void Update()
+	{
+		//Maoave
+		PlayerMove();
+		//Attack
+		PlayerAttack();
+	}
+
+	/// <summary>
+	/// Move
+	/// </summary>
+	void PlayerMove()
 	{
 		float h = Input.GetAxisRaw("Horizontal");
 		float v = Input.GetAxisRaw("Vertical");
@@ -25,9 +49,31 @@ public class PlayerController:MonoBehaviour
 		}
 
 		//Move
-		mMoveDirection = input.normalized * moveSpeed;
+		mMoveDirection = input.normalized * MoveSpeed;
 		mController.Move(mMoveDirection * Time.deltaTime);
 	}
 
+	/// <summary>
+	/// Attack
+	/// </summary>
+	void PlayerAttack()
+	{
+		if (Time.time < mNextAttackTime) return;
+		if (Input.GetMouseButtonDown(0))
+		{
+			mAnimator.Play(AnimStateID.Attack, 0, 0, ()=> { });
+			mIsAttacking = true;
+			mNextAttackTime = Time.time + AttackCoolDown;
+		}
+	}
+
+
+	
+
+	bool mIsAttacking = false;
+	float mNextAttackTime = 0f;
+	CharacterController mController;
+	Vector3 mMoveDirection;
+	AnimatorWrapper mAnimator;
 
 }
